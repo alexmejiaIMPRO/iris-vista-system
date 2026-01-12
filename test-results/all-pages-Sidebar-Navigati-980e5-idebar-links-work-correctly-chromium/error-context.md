@@ -1,0 +1,179 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "IRIS VISTA Supply Chain & Procurement" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e8]: IRIS
+          - generic [ref=e9]:
+            - generic [ref=e10]: VISTA
+            - generic [ref=e11]: Supply Chain & Procurement
+        - generic [ref=e13]:
+          - img [ref=e14]
+          - textbox "Search IRIS Vista..." [ref=e17]
+        - generic [ref=e18]:
+          - link [ref=e19] [cursor=pointer]:
+            - /url: /cart
+            - img [ref=e20]
+          - button [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+          - button "EN" [ref=e30] [cursor=pointer]:
+            - img [ref=e31]
+            - generic [ref=e34]: EN
+            - img [ref=e35]
+          - button "SA" [ref=e38] [cursor=pointer]:
+            - generic [ref=e39]: SA
+    - generic [ref=e40]:
+      - complementary [ref=e41]:
+        - navigation [ref=e42]:
+          - link "Home" [ref=e43] [cursor=pointer]:
+            - /url: /
+            - img [ref=e44]
+            - generic [ref=e47]: Home
+          - link "Internal Catalog" [active] [ref=e48] [cursor=pointer]:
+            - /url: /catalog
+            - img [ref=e49]
+            - generic [ref=e52]: Internal Catalog
+          - link "New Purchase" [ref=e53] [cursor=pointer]:
+            - /url: /purchase/new
+            - img [ref=e54]
+            - generic [ref=e58]: New Purchase
+          - link "My Requests" [ref=e59] [cursor=pointer]:
+            - /url: /requests
+            - img [ref=e60]
+            - generic [ref=e63]: My Requests
+          - link "Approvals" [ref=e64] [cursor=pointer]:
+            - /url: /approvals
+            - img [ref=e65]
+            - generic [ref=e68]: Approvals
+          - link "Approved Orders" [ref=e69] [cursor=pointer]:
+            - /url: /admin/orders
+            - img [ref=e70]
+            - generic [ref=e72]: Approved Orders
+          - link "Inventory" [ref=e73] [cursor=pointer]:
+            - /url: /inventory
+            - img [ref=e74]
+            - generic [ref=e78]: Inventory
+          - link "Analytics" [ref=e79] [cursor=pointer]:
+            - /url: /analytics
+            - img [ref=e80]
+            - generic [ref=e82]: Analytics
+          - link "Users" [ref=e83] [cursor=pointer]:
+            - /url: /admin/users
+            - img [ref=e84]
+            - generic [ref=e89]: Users
+          - link "Admin" [ref=e90] [cursor=pointer]:
+            - /url: /admin
+            - img [ref=e91]
+            - generic [ref=e94]: Admin
+      - main [ref=e95]:
+        - generic [ref=e96]:
+          - generic [ref=e100]:
+            - heading "Welcome to IRIS VISTA" [level=1] [ref=e101]
+            - paragraph [ref=e102]: Your unified workspace for supply chain & procurement management
+          - generic [ref=e104]:
+            - heading "Quick Overview" [level=2] [ref=e105]
+            - generic [ref=e106]:
+              - generic [ref=e108]:
+                - img [ref=e110]
+                - generic [ref=e113]:
+                  - heading "Pending Approvals" [level=3] [ref=e114]
+                  - paragraph [ref=e115]: 2 items awaiting review
+              - generic [ref=e117]:
+                - img [ref=e119]
+                - generic [ref=e122]:
+                  - heading "Recent Requests" [level=3] [ref=e123]
+                  - paragraph [ref=e124]: 5 active requests
+              - generic [ref=e126]:
+                - img [ref=e128]
+                - generic [ref=e131]:
+                  - heading "Spend Overview" [level=3] [ref=e132]
+                  - paragraph [ref=e133]: $1,250 this month
+          - generic [ref=e135]:
+            - heading "Procurement Modules" [level=2] [ref=e136]
+            - generic [ref=e137]:
+              - link "Equipment Procurement Equipment Lifecycle Full equipment purchase & maintenance workflow" [ref=e138] [cursor=pointer]:
+                - /url: /catalog
+                - img [ref=e141]
+                - generic [ref=e143]:
+                  - heading "Equipment Procurement" [level=3] [ref=e144]
+                  - paragraph [ref=e145]: Equipment Lifecycle
+                  - paragraph [ref=e146]: Full equipment purchase & maintenance workflow
+              - link "Service Procurement Service Requests Consulting, cleaning, legal services, etc." [ref=e147] [cursor=pointer]:
+                - /url: /catalog
+                - img [ref=e150]
+                - generic [ref=e155]:
+                  - heading "Service Procurement" [level=3] [ref=e156]
+                  - paragraph [ref=e157]: Service Requests
+                  - paragraph [ref=e158]: Consulting, cleaning, legal services, etc.
+              - link "Contract Management Construction & Engineering Long-term contracts & milestones" [ref=e159] [cursor=pointer]:
+                - /url: /requests
+                - img [ref=e162]
+                - generic [ref=e165]:
+                  - heading "Contract Management" [level=3] [ref=e166]
+                  - paragraph [ref=e167]: Construction & Engineering
+                  - paragraph [ref=e168]: Long-term contracts & milestones
+              - link "Production Materials MRP Integration SAP MRP-driven material procurement" [ref=e169] [cursor=pointer]:
+                - /url: /catalog
+                - img [ref=e172]
+                - generic [ref=e174]:
+                  - heading "Production Materials" [level=3] [ref=e175]
+                  - paragraph [ref=e176]: MRP Integration
+                  - paragraph [ref=e177]: SAP MRP-driven material procurement
+              - link "Internal Catalog Internal Shopping Mall Browse and order from internal inventory" [ref=e178] [cursor=pointer]:
+                - /url: /catalog
+                - img [ref=e181]
+                - generic [ref=e184]:
+                  - heading "Internal Catalog" [level=3] [ref=e185]
+                  - paragraph [ref=e186]: Internal Shopping Mall
+                  - paragraph [ref=e187]: Browse and order from internal inventory
+              - link "New Purchase Request External Procurement Request purchases from any URL (Amazon, MercadoLibre, etc.)" [ref=e188] [cursor=pointer]:
+                - /url: /purchase/new
+                - img [ref=e191]
+                - generic [ref=e195]:
+                  - heading "New Purchase Request" [level=3] [ref=e196]
+                  - paragraph [ref=e197]: External Procurement
+                  - paragraph [ref=e198]: Request purchases from any URL (Amazon, MercadoLibre, etc.)
+              - link "PR & PO Management Request Tracking View and manage purchase requests & orders" [ref=e199] [cursor=pointer]:
+                - /url: /requests
+                - img [ref=e202]
+                - generic [ref=e205]:
+                  - heading "PR & PO Management" [level=3] [ref=e206]
+                  - paragraph [ref=e207]: Request Tracking
+                  - paragraph [ref=e208]: View and manage purchase requests & orders
+          - generic [ref=e210]:
+            - heading "Operational Modules" [level=2] [ref=e211]
+            - generic [ref=e212]:
+              - link "Inventory Snapshot Stock Overview Real-time inventory & turnover analytics" [ref=e213] [cursor=pointer]:
+                - /url: /inventory
+                - img [ref=e216]
+                - generic [ref=e220]:
+                  - heading "Inventory Snapshot" [level=3] [ref=e221]
+                  - paragraph [ref=e222]: Stock Overview
+                  - paragraph [ref=e223]: Real-time inventory & turnover analytics
+              - link "Supplier Lifecycle Vendor Management Registration, onboarding & performance" [ref=e224] [cursor=pointer]:
+                - /url: /admin
+                - img [ref=e227]
+                - generic [ref=e232]:
+                  - heading "Supplier Lifecycle" [level=3] [ref=e233]
+                  - paragraph [ref=e234]: Vendor Management
+                  - paragraph [ref=e235]: Registration, onboarding & performance
+              - link "Analytics & AI Reports Insights Dashboard Spend analysis & AI-driven insights" [ref=e236] [cursor=pointer]:
+                - /url: /analytics
+                - img [ref=e239]
+                - generic [ref=e241]:
+                  - heading "Analytics & AI Reports" [level=3] [ref=e242]
+                  - paragraph [ref=e243]: Insights Dashboard
+                  - paragraph [ref=e244]: Spend analysis & AI-driven insights
+              - link "Admin Console System Configuration Users, workflows, and settings" [ref=e245] [cursor=pointer]:
+                - /url: /admin
+                - img [ref=e248]
+                - generic [ref=e251]:
+                  - heading "Admin Console" [level=3] [ref=e252]
+                  - paragraph [ref=e253]: System Configuration
+                  - paragraph [ref=e254]: Users, workflows, and settings
+  - alert [ref=e255]
+```
