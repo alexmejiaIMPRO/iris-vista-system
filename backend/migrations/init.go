@@ -17,11 +17,8 @@ func RunMigrations(db *gorm.DB) error {
 		&models.Product{},
 		&models.ProductImage{},
 		&models.PurchaseRequest{},
-		&models.RequestItem{},
 		&models.RequestHistory{},
 		&models.AmazonConfig{},
-		&models.FilterRule{},
-		&models.AmazonOrder{},
 		&models.AuditLog{},
 	)
 	if err != nil {

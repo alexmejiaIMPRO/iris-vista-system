@@ -10,7 +10,7 @@ type ProductSource string
 
 const (
 	SourceInternal ProductSource = "internal"
-	SourceAmazon   ProductSource = "amazon"
+	SourceExternal ProductSource = "external"
 )
 
 type Product struct {

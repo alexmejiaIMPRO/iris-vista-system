@@ -25,7 +25,7 @@ export interface AuthResponse {
 }
 
 // Product types
-export type ProductSource = 'internal' | 'amazon';
+export type ProductSource = 'internal' | 'external';
 export type StockStatus = 'in_stock' | 'limited' | 'out_of_stock';
 
 export interface ProductImage {
@@ -71,23 +71,9 @@ export interface CartItem {
   quantity: number;
 }
 
-// Request types
-export type RequestStatus = 'pending' | 'approved' | 'rejected' | 'processing' | 'completed' | 'cancelled';
-export type RequestType = 'material_issue' | 'purchase_requisition';
-
-export interface RequestItem {
-  id: number;
-  product_id?: number;
-  amazon_asin?: string;
-  name: string;
-  specification: string;
-  quantity: number;
-  unit_price: number;
-  total_price: number;
-  supplier: string;
-  source: ProductSource;
-  image_url?: string;
-}
+// Request types - Simplified URL-based model
+export type RequestStatus = 'pending' | 'approved' | 'rejected' | 'info_requested' | 'purchased';
+export type Urgency = 'normal' | 'urgent';
 
 export interface RequestHistory {
   id: number;
@@ -95,93 +81,86 @@ export interface RequestHistory {
   user?: User;
   action: string;
   comment: string;
-  old_status: RequestStatus;
-  new_status: RequestStatus;
+  old_status: string;
+  new_status: string;
   created_at: string;
 }
 
 export interface PurchaseRequest {
   id: number;
   request_number: string;
+
+  // Product info (from URL metadata)
+  url: string;
+  product_title: string;
+  product_image_url: string;
+  product_description?: string;
+  estimated_price?: number;
+  currency: string;
+
+  // Request details
+  quantity: number;
+  justification: string;
+  urgency: Urgency;
+
+  // Requester
   requester_id: number;
   requester?: User;
+
+  // Status
   status: RequestStatus;
-  type: RequestType;
-  total_amount: number;
-  currency: string;
-  cost_center: string;
-  purpose: string;
-  notes?: string;
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  items: RequestItem[];
-  history?: RequestHistory[];
+
+  // Amazon automation
+  is_amazon_url: boolean;
+  added_to_cart: boolean;
+  added_to_cart_at?: string;
+  cart_error?: string;
+  amazon_asin?: string;
+
+  // Approval info
   approved_by?: User;
+  approved_by_id?: number;
   approved_at?: string;
   rejected_by?: User;
+  rejected_by_id?: number;
   rejected_at?: string;
   rejection_reason?: string;
-  amazon_order_id?: number;
+
+  // Info request
+  info_requested_at?: string;
+  info_request_note?: string;
+
+  // Purchase completion
+  purchased_by?: User;
+  purchased_by_id?: number;
+  purchased_at?: string;
+  purchase_notes?: string;
+
+  // History
+  history?: RequestHistory[];
+
+  // Timestamps
   created_at: string;
   updated_at: string;
-}
 
-export interface CreateRequestInput {
-  type: RequestType;
-  cost_center: string;
+  // Legacy fields for backward compatibility
+  type?: string;
+  total_amount?: number;
+  cost_center?: string;
   purpose?: string;
   notes?: string;
-  priority?: 'low' | 'normal' | 'high' | 'urgent';
-  items: {
-    product_id?: number;
-    amazon_asin?: string;
-    name: string;
-    specification?: string;
-    quantity: number;
-    unit_price: number;
-    supplier?: string;
-    source: ProductSource;
-    image_url?: string;
-  }[];
-}
-
-// Filter Rule types
-export type RuleType = 'price_max' | 'price_min' | 'category_allow' | 'category_block' | 'supplier_allow' | 'supplier_block' | 'brand_allow' | 'brand_block' | 'keyword_block';
-
-export interface FilterRule {
-  id: number;
-  name: string;
-  description?: string;
-  rule_type: RuleType;
-  value: string;
-  priority: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  priority?: string;
+  items?: any[];
 }
 
 // Amazon Config types
 export interface AmazonConfig {
   id: number;
-
-  // PA-API credentials (for product search)
-  access_key?: string;
-  partner_tag?: string;
-  region?: string;
+  email?: string;
   marketplace?: string;
-  has_secret_key: boolean;
-  paapi_configured: boolean;
-
-  // Business account credentials (for ordering)
-  username?: string;
-  account_id?: string;
-  business_group?: string;
-  default_shipping_address?: string;
   has_password: boolean;
-  business_configured: boolean;
-
-  // Status
   is_active: boolean;
-  last_sync_at?: string;
+  last_login_at?: string;
   last_test_at?: string;
   test_status?: 'success' | 'failed' | 'pending';
   test_message?: string;
@@ -215,8 +194,9 @@ export interface DashboardStats {
   total_requests: number;
   pending_approvals: number;
   approved_requests: number;
-  rejected_requests: number;
-  active_filter_rules: number;
+  purchased_orders: number;
+  amazon_in_cart: number;
+  pending_manual: number;
   amazon_configured: boolean;
 }
 
@@ -224,6 +204,9 @@ export interface ApprovalStats {
   pending: number;
   approved: number;
   rejected: number;
+  info_required: number;
+  purchased: number;
   total: number;
   urgent: number;
+  amazon_in_cart: number;
 }

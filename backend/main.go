@@ -8,6 +8,7 @@ import (
 	"vista-backend/internal/handlers"
 	"vista-backend/internal/middleware"
 	"vista-backend/internal/services"
+	"vista-backend/internal/services/amazon"
 	"vista-backend/migrations"
 	"vista-backend/pkg/crypto"
 	"vista-backend/pkg/jwt"
@@ -41,15 +42,15 @@ func main() {
 	}
 
 	authService := services.NewAuthService(db, jwtService)
+	amazonService := amazon.NewAutomationService()
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	userHandler := handlers.NewUserHandler(db)
 	productHandler := handlers.NewProductHandler(db)
 	requestHandler := handlers.NewRequestHandler(db)
-	approvalHandler := handlers.NewApprovalHandler(db)
-	adminHandler := handlers.NewAdminHandler(db, encryptionService)
-	amazonHandler := handlers.NewAmazonHandler(db, encryptionService)
+	approvalHandler := handlers.NewApprovalHandler(db, amazonService, encryptionService)
+	adminHandler := handlers.NewAdminHandler(db, encryptionService, amazonService)
 	uploadHandler := handlers.NewUploadHandler()
 
 	// Setup router
@@ -122,16 +123,24 @@ func main() {
 			productsMgmt.PATCH("/:id/stock", productHandler.UpdateStock)
 		}
 
-		// Request routes (all authenticated users)
-		requests := v1.Group("/requests")
+		// Purchase request routes (all authenticated users)
+		requests := v1.Group("/purchase-requests")
 		requests.Use(middleware.Auth(jwtService))
-		requests.Use(middleware.CanViewAllRequests())
 		{
-			requests.GET("", requestHandler.ListRequests)
+			requests.POST("/extract-metadata", requestHandler.ExtractMetadata)
+			requests.POST("", requestHandler.CreateRequest)
 			requests.GET("/my", requestHandler.GetMyRequests)
 			requests.GET("/:id", requestHandler.GetRequest)
-			requests.POST("", requestHandler.CreateRequest)
+			requests.PUT("/:id", requestHandler.UpdateRequest)
 			requests.DELETE("/:id", requestHandler.CancelRequest)
+		}
+
+		// All requests route (for admin/gm/scm)
+		allRequests := v1.Group("/requests")
+		allRequests.Use(middleware.Auth(jwtService))
+		allRequests.Use(middleware.CanViewAllRequests())
+		{
+			allRequests.GET("", requestHandler.ListRequests)
 		}
 
 		// Approval routes (general manager)
@@ -144,7 +153,7 @@ func main() {
 			approvals.GET("/:id", approvalHandler.GetApprovalDetails)
 			approvals.POST("/:id/approve", approvalHandler.ApproveRequest)
 			approvals.POST("/:id/reject", approvalHandler.RejectRequest)
-			approvals.POST("/:id/return", approvalHandler.ReturnRequest)
+			approvals.POST("/:id/request-info", approvalHandler.RequestInfo)
 		}
 
 		// Admin routes
@@ -158,33 +167,12 @@ func main() {
 			admin.GET("/amazon/config", adminHandler.GetAmazonConfig)
 			admin.PUT("/amazon/config", adminHandler.SaveAmazonConfig)
 			admin.POST("/amazon/test", adminHandler.TestAmazonConnection)
+			admin.GET("/amazon/session", adminHandler.GetAmazonSessionStatus)
 
-			// Filter rules
-			admin.GET("/filters", adminHandler.ListFilterRules)
-			admin.POST("/filters", adminHandler.CreateFilterRule)
-			admin.PUT("/filters/:id", adminHandler.UpdateFilterRule)
-			admin.DELETE("/filters/:id", adminHandler.DeleteFilterRule)
-			admin.PATCH("/filters/:id/toggle", adminHandler.ToggleFilterRule)
-		}
-
-		// Amazon routes (all authenticated users can search)
-		amazon := v1.Group("/amazon")
-		amazon.Use(middleware.Auth(jwtService))
-		{
-			amazon.GET("/products", amazonHandler.SearchProducts)
-			amazon.GET("/products/:asin", amazonHandler.GetProductDetails)
-			amazon.GET("/categories", amazonHandler.GetFilteredCategories)
-			amazon.GET("/filters", amazonHandler.GetActiveFilters)
-			amazon.GET("/session", amazonHandler.GetSessionStatus)
-		}
-
-		// Amazon admin routes (admin only)
-		amazonAdmin := v1.Group("/amazon/admin")
-		amazonAdmin.Use(middleware.Auth(jwtService))
-		amazonAdmin.Use(middleware.RequireAdmin())
-		{
-			amazonAdmin.POST("/initialize", amazonHandler.Initialize)
-			amazonAdmin.POST("/login", amazonHandler.Login)
+			// Approved orders management
+			admin.GET("/approved-orders", adminHandler.GetApprovedOrders)
+			admin.PATCH("/orders/:id/purchased", adminHandler.MarkAsPurchased)
+			admin.POST("/orders/:id/retry-cart", adminHandler.RetryAddToCart)
 		}
 
 		// Upload routes (admin/supply chain)

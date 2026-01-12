@@ -6,8 +6,6 @@ import type {
   User,
   Product,
   PurchaseRequest,
-  CreateRequestInput,
-  FilterRule,
   AmazonConfig,
   DashboardStats,
   ApprovalStats
@@ -58,7 +56,6 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
-      // Token expired, try to refresh
       const refreshToken = localStorage.getItem('refresh_token');
       if (refreshToken) {
         try {
@@ -69,20 +66,17 @@ api.interceptors.response.use(
           setAccessToken(access_token);
           localStorage.setItem('refresh_token', refresh_token);
 
-          // Retry original request
           const originalRequest = error.config;
           if (originalRequest) {
             originalRequest.headers.Authorization = `Bearer ${access_token}`;
             return api(originalRequest);
           }
         } catch {
-          // Refresh failed, clear tokens and redirect to login
           setAccessToken(null);
           localStorage.removeItem('refresh_token');
           window.location.href = '/login';
         }
       } else {
-        // No refresh token, redirect to login
         window.location.href = '/login';
       }
     }
@@ -201,30 +195,86 @@ export const productsApi = {
   },
 };
 
-// Requests API
+// Purchase Requests API - New simplified flow
+export interface CreatePurchaseRequestInput {
+  url: string;
+  quantity: number;
+  justification: string;
+  urgency?: 'normal' | 'urgent';
+  product_title?: string;
+  product_image_url?: string;
+  product_description?: string;
+  estimated_price?: number;
+  currency?: string;
+}
+
+export interface ProductMetadata {
+  url: string;
+  title: string;
+  description: string;
+  image_url: string;
+  price: number | null;
+  currency: string;
+  site_name: string;
+  is_amazon: boolean;
+  amazon_asin: string;
+  error: string | null;
+}
+
+export const purchaseRequestsApi = {
+  // Extract metadata from URL (preview before submission)
+  extractMetadata: async (url: string): Promise<ProductMetadata> => {
+    const response = await api.post<ApiResponse<ProductMetadata>>('/purchase-requests/extract-metadata', { url });
+    return response.data.data!;
+  },
+
+  // Create a new purchase request
+  create: async (data: CreatePurchaseRequestInput): Promise<PurchaseRequest> => {
+    const response = await api.post<ApiResponse<PurchaseRequest>>('/purchase-requests', data);
+    return response.data.data!;
+  },
+
+  // Get my requests
+  getMyRequests: async (params?: { page?: number; per_page?: number; status?: string }) => {
+    const response = await api.get<ApiResponse<PurchaseRequest[]>>('/purchase-requests/my', { params });
+    return response.data;
+  },
+
+  // Get a specific request
+  get: async (id: number): Promise<PurchaseRequest> => {
+    const response = await api.get<ApiResponse<PurchaseRequest>>(`/purchase-requests/${id}`);
+    return response.data.data!;
+  },
+
+  // Update a request (only if pending or info_requested)
+  update: async (id: number, data: Partial<CreatePurchaseRequestInput>): Promise<PurchaseRequest> => {
+    const response = await api.put<ApiResponse<PurchaseRequest>>(`/purchase-requests/${id}`, data);
+    return response.data.data!;
+  },
+
+  // Cancel a request
+  cancel: async (id: number): Promise<void> => {
+    await api.delete(`/purchase-requests/${id}`);
+  },
+};
+
+// Legacy requests API for backward compatibility
 export const requestsApi = {
-  list: async (params?: { page?: number; per_page?: number; status?: string; type?: string }) => {
+  list: async (params?: { page?: number; per_page?: number; status?: string }) => {
     const response = await api.get<ApiResponse<PurchaseRequest[]>>('/requests', { params });
     return response.data;
   },
 
   getMyRequests: async (params?: { page?: number; per_page?: number; status?: string }) => {
-    const response = await api.get<ApiResponse<PurchaseRequest[]>>('/requests/my', { params });
-    return response.data;
+    return purchaseRequestsApi.getMyRequests(params);
   },
 
   get: async (id: number): Promise<PurchaseRequest> => {
-    const response = await api.get<ApiResponse<PurchaseRequest>>(`/requests/${id}`);
-    return response.data.data!;
-  },
-
-  create: async (data: CreateRequestInput): Promise<PurchaseRequest> => {
-    const response = await api.post<ApiResponse<PurchaseRequest>>('/requests', data);
-    return response.data.data!;
+    return purchaseRequestsApi.get(id);
   },
 
   cancel: async (id: number): Promise<void> => {
-    await api.delete(`/requests/${id}`);
+    return purchaseRequestsApi.cancel(id);
   },
 };
 
@@ -255,8 +305,8 @@ export const approvalsApi = {
     return response.data.data!;
   },
 
-  return: async (id: number, comment: string): Promise<PurchaseRequest> => {
-    const response = await api.post<ApiResponse<PurchaseRequest>>(`/approvals/${id}/return`, { comment });
+  requestInfo: async (id: number, comment: string): Promise<PurchaseRequest> => {
+    const response = await api.post<ApiResponse<PurchaseRequest>>(`/approvals/${id}/request-info`, { comment });
     return response.data.data!;
   },
 };
@@ -275,11 +325,10 @@ export const adminApi = {
   },
 
   saveAmazonConfig: async (data: {
-    username: string;
+    email: string;
     password?: string;
-    account_id?: string;
-    business_group?: string;
-    default_shipping_address?: string;
+    marketplace?: string;
+    is_active?: boolean;
   }): Promise<AmazonConfig> => {
     const response = await api.put<ApiResponse<AmazonConfig>>('/admin/amazon/config', data);
     return response.data.data!;
@@ -290,112 +339,38 @@ export const adminApi = {
     return response.data.data!;
   },
 
-  // Filter Rules
-  listFilterRules: async (): Promise<FilterRule[]> => {
-    const response = await api.get<ApiResponse<FilterRule[]>>('/admin/filters');
-    return response.data.data!;
-  },
-
-  createFilterRule: async (data: Partial<FilterRule>): Promise<FilterRule> => {
-    const response = await api.post<ApiResponse<FilterRule>>('/admin/filters', data);
-    return response.data.data!;
-  },
-
-  updateFilterRule: async (id: number, data: Partial<FilterRule>): Promise<FilterRule> => {
-    const response = await api.put<ApiResponse<FilterRule>>(`/admin/filters/${id}`, data);
-    return response.data.data!;
-  },
-
-  deleteFilterRule: async (id: number): Promise<void> => {
-    await api.delete(`/admin/filters/${id}`);
-  },
-
-  toggleFilterRule: async (id: number): Promise<FilterRule> => {
-    const response = await api.patch<ApiResponse<FilterRule>>(`/admin/filters/${id}/toggle`);
-    return response.data.data!;
-  },
-};
-
-// Amazon Product API (for searching Amazon Business products)
-export interface AmazonProduct {
-  id: number;
-  sku: string;
-  asin: string;
-  name: string;
-  description: string;
-  category: string;
-  specification: string;
-  supplier: string;
-  price: number;
-  currency: string;
-  stock: number;
-  stock_status: string;
-  image_url: string;
-  product_url: string;
-  source: string;
-  is_active: boolean;
-  rating: number;
-  review_count: number;
-  is_prime: boolean;
-  is_best_seller: boolean;
-}
-
-export interface AmazonSearchParams {
-  q: string;
-  category?: string;
-  min_price?: number;
-  max_price?: number;
-  page?: number;
-  sort_by?: string;
-}
-
-export interface AmazonSearchResult {
-  products: AmazonProduct[];
-  total_count: number;
-  page: number;
-  has_more: boolean;
-  is_mock?: boolean;
-  error?: string;
-}
-
-export const amazonApi = {
-  searchProducts: async (params: AmazonSearchParams): Promise<AmazonSearchResult> => {
-    const queryParams = new URLSearchParams();
-    queryParams.set('q', params.q);
-    if (params.category) queryParams.set('category', params.category);
-    if (params.min_price) queryParams.set('min_price', params.min_price.toString());
-    if (params.max_price) queryParams.set('max_price', params.max_price.toString());
-    if (params.page) queryParams.set('page', params.page.toString());
-    if (params.sort_by) queryParams.set('sort_by', params.sort_by);
-
-    const response = await api.get<ApiResponse<AmazonSearchResult>>(`/amazon/products?${queryParams.toString()}`);
-    return response.data.data!;
-  },
-
-  getProductDetails: async (asin: string): Promise<AmazonProduct> => {
-    const response = await api.get<ApiResponse<AmazonProduct>>(`/amazon/products/${asin}`);
-    return response.data.data!;
-  },
-
-  getCategories: async (): Promise<string[]> => {
-    const response = await api.get<ApiResponse<string[]>>('/amazon/categories');
-    return response.data.data!;
-  },
-
-  getActiveFilters: async (): Promise<{
-    max_price?: number;
-    min_price?: number;
-    blocked_categories: string[];
-    blocked_suppliers: string[];
-    blocked_keywords: string[];
+  getAmazonSessionStatus: async (): Promise<{
+    initialized: boolean;
+    logged_in: boolean;
+    email: string;
+    base_url: string;
   }> => {
     const response = await api.get<ApiResponse<{
-      max_price?: number;
-      min_price?: number;
-      blocked_categories: string[];
-      blocked_suppliers: string[];
-      blocked_keywords: string[];
-    }>>('/amazon/filters');
+      initialized: boolean;
+      logged_in: boolean;
+      email: string;
+      base_url: string;
+    }>>('/admin/amazon/session');
+    return response.data.data!;
+  },
+
+  // Approved Orders Dashboard
+  getApprovedOrders: async (params?: {
+    page?: number;
+    per_page?: number;
+    filter?: 'all' | 'amazon_cart' | 'pending_manual' | 'purchased';
+  }) => {
+    const response = await api.get<ApiResponse<PurchaseRequest[]>>('/admin/approved-orders', { params });
+    return response.data;
+  },
+
+  markAsPurchased: async (id: number, notes?: string): Promise<PurchaseRequest> => {
+    const response = await api.patch<ApiResponse<PurchaseRequest>>(`/admin/orders/${id}/purchased`, { notes });
+    return response.data.data!;
+  },
+
+  retryAddToCart: async (id: number): Promise<PurchaseRequest> => {
+    const response = await api.post<ApiResponse<PurchaseRequest>>(`/admin/orders/${id}/retry-cart`);
     return response.data.data!;
   },
 };

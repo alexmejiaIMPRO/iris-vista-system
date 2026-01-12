@@ -88,11 +88,11 @@ export default function HomePage() {
           },
           {
             icon: ExternalLink,
-            title: 'Punch-Out to Amazon',
+            title: 'New Purchase Request',
             subtitle: 'External Procurement',
-            description: 'Access Amazon Business with AI price comparison',
+            description: 'Request purchases from any URL (Amazon, MercadoLibre, etc.)',
             color: '#3F8F8F',
-            href: '/catalog/amazon',
+            href: '/purchase/new',
           },
           {
             icon: FileText,
@@ -195,11 +195,11 @@ export default function HomePage() {
           },
           {
             icon: ExternalLink,
-            title: 'Punch-Out 到亚马逊',
+            title: '新采购申请',
             subtitle: '外部采购',
-            description: '访问亚马逊商业与 AI 价格比较',
+            description: '从任何URL请求采购（亚马逊、MercadoLibre等）',
             color: '#3F8F8F',
-            href: '/catalog/amazon',
+            href: '/purchase/new',
           },
           {
             icon: FileText,
@@ -302,11 +302,11 @@ export default function HomePage() {
           },
           {
             icon: ExternalLink,
-            title: 'Punch-Out a Amazon',
+            title: 'Nueva Solicitud de Compra',
             subtitle: 'Adquisición Externa',
-            description: 'Acceder a Amazon Business con comparación de precios de IA',
+            description: 'Solicitar compras desde cualquier URL (Amazon, MercadoLibre, etc.)',
             color: '#3F8F8F',
-            href: '/catalog/amazon',
+            href: '/purchase/new',
           },
           {
             icon: FileText,

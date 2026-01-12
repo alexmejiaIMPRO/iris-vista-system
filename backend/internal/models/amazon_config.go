@@ -4,52 +4,45 @@ import (
 	"time"
 )
 
+// AmazonConfig stores Amazon Business credentials for automation
 type AmazonConfig struct {
-	ID                     uint       `gorm:"primaryKey" json:"id"`
+	ID uint `gorm:"primaryKey" json:"id"`
 
-	// PA-API (Product Advertising API) credentials
-	AccessKey              string     `gorm:"size:100" json:"access_key"`
-	EncryptedSecretKey     string     `json:"-"` // AES-256 encrypted
-	PartnerTag             string     `gorm:"size:100" json:"partner_tag"` // Amazon Associates tag
-	Region                 string     `gorm:"size:50;default:us-east-1" json:"region"` // AWS region
-	Marketplace            string     `gorm:"size:50;default:www.amazon.com" json:"marketplace"` // Amazon domain
+	// Amazon Business account credentials
+	Email             string `gorm:"size:255" json:"email"`
+	EncryptedPassword string `json:"-"` // AES-256 encrypted
 
-	// Legacy Business account fields (for ordering)
-	Username               string     `gorm:"size:255" json:"username"`
-	EncryptedPassword      string     `json:"-"` // AES-256 encrypted
-	AccountID              string     `gorm:"size:100" json:"account_id"`
-	BusinessGroup          string     `gorm:"size:255" json:"business_group"`
-	DefaultShippingAddress string     `gorm:"type:text" json:"default_shipping_address"`
+	// Amazon domain
+	Marketplace string `gorm:"size:100;default:www.amazon.com.mx" json:"marketplace"`
 
 	// Status
-	IsActive               bool       `gorm:"default:true" json:"is_active"`
-	LastSyncAt             *time.Time `json:"last_sync_at"`
-	LastTestAt             *time.Time `json:"last_test_at"`
-	TestStatus             string     `gorm:"size:50" json:"test_status"` // success, failed, pending
-	TestMessage            string     `gorm:"type:text" json:"test_message"`
+	IsActive    bool       `gorm:"default:true" json:"is_active"`
+	LastLoginAt *time.Time `json:"last_login_at"`
+	LastTestAt  *time.Time `json:"last_test_at"`
+	TestStatus  string     `gorm:"size:50" json:"test_status"` // success, failed, pending
+	TestMessage string     `gorm:"type:text" json:"test_message"`
 
-	CreatedAt              time.Time  `json:"created_at"`
-	UpdatedAt              time.Time  `json:"updated_at"`
-	CreatedByID            uint       `json:"created_by_id"`
-	CreatedBy              User       `gorm:"foreignKey:CreatedByID" json:"created_by"`
+	// Metadata
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	CreatedByID uint      `json:"created_by_id"`
+	CreatedBy   User      `gorm:"foreignKey:CreatedByID" json:"created_by"`
 }
 
-// IsPAAPIConfigured checks if PA-API is configured for product search
-func (ac *AmazonConfig) IsPAAPIConfigured() bool {
-	return ac.AccessKey != "" && ac.EncryptedSecretKey != "" && ac.PartnerTag != ""
-}
-
-// IsBusinessConfigured checks if Business account is configured for ordering
-func (ac *AmazonConfig) IsBusinessConfigured() bool {
-	return ac.Username != "" && ac.EncryptedPassword != ""
-}
-
-// IsConfigured checks if either PA-API or Business is configured
+// IsConfigured checks if Amazon credentials are configured
 func (ac *AmazonConfig) IsConfigured() bool {
-	return ac.IsPAAPIConfigured() || ac.IsBusinessConfigured()
+	return ac.Email != "" && ac.EncryptedPassword != ""
 }
 
 // CanConnect checks if we can attempt to connect
 func (ac *AmazonConfig) CanConnect() bool {
 	return ac.IsConfigured() && ac.IsActive
+}
+
+// GetAmazonBaseURL returns the Amazon base URL for the configured marketplace
+func (ac *AmazonConfig) GetAmazonBaseURL() string {
+	if ac.Marketplace == "" {
+		return "https://www.amazon.com.mx"
+	}
+	return "https://" + ac.Marketplace
 }
